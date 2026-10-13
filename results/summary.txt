@@ -1,0 +1,377 @@
+WALK-FORWARD BENCHMARK SUMMARY
+
+run: started 2026-10-05T12:12:15, last update 2026-10-05T12:42:37
+software: python 3.13.15, numpy 2.1.3, pandas 2.2.3, tensorflow 2.20.0, statsmodels 0.15.0, GPU True
+seeds (deep models): [42, 43, 44] | arima training block (bike): 720 records | fourier K (champagne ARIMAX): 3
+transformer: d_model 32, heads 4, key_dim 16; Adam lr 0.001
+
+DATA FACTS (computed from the supplied files)
+- champagne: 105 months, 1964-01 .. 1972-09; min 1,413, max 13,916
+- champagne monthly means: highest December (10,821), lowest August (1,727)
+- bike: 17,379 records, 2011-01-01 .. 2012-12-31; calendar span 17,544 h => 165 hours missing
+- bike top-3 mean-demand hours: 17:00 (461.5), 18:00 (425.5), 8:00 (359.0)
+- bike mean hourly demand by year: 2011: 143.8, 2012: 234.7
+
+DEEP-MODEL TRAINING SETTINGS
+- champagne: window L {'LSTM': 12, 'GRU': 12, 'CNN-LSTM': 12, 'Transformer': 12, 'Transformer+PE': 12}, conv padding same, batch 4, max epochs 300, patience 20, validation fraction 0.2
+- bike: window L {'LSTM': 24, 'GRU': 24, 'CNN-LSTM': 48, 'Transformer': 48, 'Transformer+PE': 48}, conv padding valid, batch 128, max epochs 60, patience 5, validation fraction 0.1
+
+TRAINABLE PARAMETERS (counted by TensorFlow)
+| model | champagne (F=1) | bike (F=8) |
+|---|---|---|
+| LSTM | 16,961 | 18,753 |
+| GRU | 12,929 | 14,273 |
+| CNN-LSTM | 39,425 | 40,097 |
+| Transformer | 12,833 | 13,057 |
+| Transformer+PE | 13,217 | 14,593 |
+
+================================================================================
+DATASET: champagne  (months), 4 walk-forward folds, test block 12 each
+================================================================================
+fold 1: training months 0..56 (57), test months 57..68 (1968-10 .. 1969-09)
+fold 2: training months 0..68 (69), test months 69..80 (1969-10 .. 1970-09)
+fold 3: training months 0..80 (81), test months 81..92 (1970-10 .. 1971-09)
+fold 4: training months 0..92 (93), test months 93..104 (1971-10 .. 1972-09)
+pooled test targets per model/horizon: 48
+
+TRAINING WINDOWS PER FOLD AND EARLY STOPPING (deep models)
+| model | windows/fold (h=1) | windows/fold (h=12) | mean epochs | runs at max epochs |
+|---|---|---|---|---|
+| LSTM | [45, 57, 69, 81] | [34, 46, 58, 70] | 89.8 | 0/48 |
+| GRU | [45, 57, 69, 81] | [34, 46, 58, 70] | 108.4 | 0/48 |
+| CNN-LSTM | [45, 57, 69, 81] | [34, 46, 58, 70] | 60.5 | 0/48 |
+| Transformer | [45, 57, 69, 81] | [34, 46, 58, 70] | 49.5 | 0/48 |
+| Transformer+PE | [45, 57, 69, 81] | [34, 46, 58, 70] | 98.1 | 0/48 |
+SARIMA: optimiser converged in folds [False, True, True, True]; training-block length 57
+ARIMAX: optimiser converged in folds [True, True, True, True]; training-block length 57
+
+TABLE: champagne, horizon t+1 - pooled over all folds (mean ± sd over seeds; no ± = deterministic)
+| model | MAE | RMSE | MAPE % | sMAPE % | sd of per-fold MAE |
+|---|---|---|---|---|---|
+| SeasonalNaive | 641.46 | 862.46 | 13.56 | 13.37 | 287.83 |
+| SARIMA | 635.74 | 868.96 | 15.26 | 13.92 | 354.94 |
+| ARIMAX | 1196.64 | 1602.65 | 27.31 | 23.20 | 415.28 |
+| LSTM | 1436.34 ± 29.29 | 1960.29 ± 67.28 | 31.23 ± 0.10 | 29.15 ± 1.39 | 389.14 |
+| GRU | 1280.90 ± 71.71 | 1842.87 ± 121.10 | 29.18 ± 1.70 | 26.49 ± 1.32 | 478.04 |
+| CNN-LSTM | 1046.71 ± 206.05 | 1547.36 ± 391.53 | 22.40 ± 4.58 | 20.75 ± 4.06 | 310.10 |
+| Transformer | 2228.90 ± 51.02 | 3194.43 ± 53.26 | 47.16 ± 0.75 | 39.76 ± 1.08 | 549.06 |
+| Transformer+PE | 1063.66 ± 77.93 | 1588.16 ± 231.51 | 23.01 ± 1.58 | 21.33 ± 1.75 | 446.56 |
+
+TABLE: champagne, horizon t+3 - pooled over all folds (mean ± sd over seeds; no ± = deterministic)
+| model | MAE | RMSE | MAPE % | sMAPE % | sd of per-fold MAE |
+|---|---|---|---|---|---|
+| SeasonalNaive | 641.46 | 862.46 | 13.56 | 13.37 | 287.83 |
+| SARIMA | 707.83 | 922.43 | 16.79 | 15.38 | 359.17 |
+| ARIMAX | 1191.17 | 1583.03 | 27.44 | 23.32 | 397.36 |
+| LSTM | 1848.71 ± 20.42 | 2522.82 ± 18.43 | 41.89 ± 1.55 | 38.68 ± 0.80 | 537.29 |
+| GRU | 1830.56 ± 91.40 | 2772.12 ± 396.80 | 39.81 ± 2.49 | 37.06 ± 1.05 | 650.59 |
+| CNN-LSTM | 753.64 ± 70.45 | 983.06 ± 95.03 | 17.73 ± 1.36 | 16.20 ± 1.10 | 357.95 |
+| Transformer | 2109.30 ± 8.23 | 3124.24 ± 38.42 | 44.32 ± 0.59 | 37.50 ± 0.20 | 437.92 |
+| Transformer+PE | 1045.74 ± 156.58 | 1426.72 ± 200.48 | 23.54 ± 3.28 | 21.07 ± 2.62 | 301.00 |
+
+TABLE: champagne, horizon t+6 - pooled over all folds (mean ± sd over seeds; no ± = deterministic)
+| model | MAE | RMSE | MAPE % | sMAPE % | sd of per-fold MAE |
+|---|---|---|---|---|---|
+| SeasonalNaive | 641.46 | 862.46 | 13.56 | 13.37 | 287.83 |
+| SARIMA | 723.91 | 935.65 | 16.99 | 15.57 | 359.01 |
+| ARIMAX | 1195.45 | 1671.43 | 29.30 | 23.97 | 383.32 |
+| LSTM | 1713.35 ± 60.15 | 2338.43 ± 74.75 | 34.10 ± 1.60 | 31.92 ± 0.37 | 344.53 |
+| GRU | 1237.03 ± 34.51 | 1544.60 ± 69.37 | 27.99 ± 0.92 | 28.38 ± 0.74 | 287.87 |
+| CNN-LSTM | 898.13 ± 159.84 | 1255.43 ± 403.96 | 19.78 ± 3.07 | 18.65 ± 2.61 | 206.82 |
+| Transformer | 2058.03 ± 17.44 | 3107.89 ± 14.96 | 41.93 ± 0.86 | 36.57 ± 0.35 | 333.85 |
+| Transformer+PE | 896.42 ± 144.71 | 1201.19 ± 181.90 | 20.75 ± 2.45 | 18.24 ± 2.49 | 200.22 |
+
+TABLE: champagne, horizon t+12 - pooled over all folds (mean ± sd over seeds; no ± = deterministic)
+| model | MAE | RMSE | MAPE % | sMAPE % | sd of per-fold MAE |
+|---|---|---|---|---|---|
+| SeasonalNaive | 641.46 | 862.46 | 13.56 | 13.37 | 287.83 |
+| SARIMA | 670.93 | 902.19 | 15.73 | 14.20 | 414.03 |
+| ARIMAX | 1148.03 | 1543.22 | 26.37 | 23.20 | 308.09 |
+| LSTM | 1363.17 ± 186.43 | 2229.30 ± 331.48 | 28.15 ± 3.19 | 28.57 ± 3.31 | 815.54 |
+| GRU | 868.32 ± 31.69 | 1071.00 ± 29.40 | 20.72 ± 0.95 | 20.12 ± 0.47 | 324.87 |
+| CNN-LSTM | 717.83 ± 51.54 | 948.65 ± 66.28 | 15.92 ± 1.75 | 14.48 ± 1.34 | 245.92 |
+| Transformer | 2077.99 ± 16.81 | 3154.75 ± 14.51 | 41.42 ± 0.24 | 36.78 ± 0.29 | 218.96 |
+| Transformer+PE | 1278.23 ± 489.67 | 1864.53 ± 717.32 | 26.47 ± 8.76 | 27.67 ± 12.30 | 503.02 |
+
+TABLE: champagne, MAE by horizon (pooled; mean ± sd over seeds)
+| model | t+1 | t+3 | t+6 | t+12 |
+|---|---|---|---|---|
+| SeasonalNaive | 641.46 | 641.46 | 641.46 | 641.46 |
+| SARIMA | 635.74 | 707.83 | 723.91 | 670.93 |
+| ARIMAX | 1196.64 | 1191.17 | 1195.45 | 1148.03 |
+| LSTM | 1436.34 ± 29.29 | 1848.71 ± 20.42 | 1713.35 ± 60.15 | 1363.17 ± 186.43 |
+| GRU | 1280.90 ± 71.71 | 1830.56 ± 91.40 | 1237.03 ± 34.51 | 868.32 ± 31.69 |
+| CNN-LSTM | 1046.71 ± 206.05 | 753.64 ± 70.45 | 898.13 ± 159.84 | 717.83 ± 51.54 |
+| Transformer | 2228.90 ± 51.02 | 2109.30 ± 8.23 | 2058.03 ± 17.44 | 2077.99 ± 16.81 |
+| Transformer+PE | 1063.66 ± 77.93 | 1045.74 ± 156.58 | 896.42 ± 144.71 | 1278.23 ± 489.67 |
+
+TABLE: champagne, horizon t+1 - MAE per fold (mean over seeds)
+| model | fold 1 | fold 2 | fold 3 | fold 4 |
+|---|---|---|---|---|
+| SeasonalNaive | 504.83 | 933.42 | 821.25 | 306.33 |
+| SARIMA | 492.05 | 1130.12 | 620.71 | 300.09 |
+| ARIMAX | 1159.14 | 1780.68 | 1036.30 | 810.44 |
+| LSTM | 1967.19 | 1202.62 | 1479.77 | 1095.79 |
+| GRU | 1996.09 | 1072.41 | 994.13 | 1060.97 |
+| CNN-LSTM | 1351.26 | 1066.24 | 1151.92 | 617.43 |
+| Transformer | 1862.65 | 3044.74 | 1961.66 | 2046.53 |
+| Transformer+PE | 1351.21 | 1490.92 | 903.14 | 509.37 |
+
+TABLE: champagne, horizon t+3 - MAE per fold (mean over seeds)
+| model | fold 1 | fold 2 | fold 3 | fold 4 |
+|---|---|---|---|---|
+| SeasonalNaive | 504.83 | 933.42 | 821.25 | 306.33 |
+| SARIMA | 588.17 | 1176.86 | 747.23 | 319.05 |
+| ARIMAX | 1118.83 | 1759.79 | 1047.87 | 838.19 |
+| LSTM | 1795.78 | 1412.29 | 2619.24 | 1567.54 |
+| GRU | 1839.09 | 1570.54 | 2721.32 | 1191.28 |
+| CNN-LSTM | 467.78 | 1082.78 | 1042.96 | 421.03 |
+| Transformer | 1824.76 | 2762.24 | 1934.54 | 1915.67 |
+| Transformer+PE | 823.50 | 1490.21 | 943.76 | 925.49 |
+
+TABLE: champagne, horizon t+6 - MAE per fold (mean over seeds)
+| model | fold 1 | fold 2 | fold 3 | fold 4 |
+|---|---|---|---|---|
+| SeasonalNaive | 504.83 | 933.42 | 821.25 | 306.33 |
+| SARIMA | 625.53 | 1186.82 | 761.03 | 322.27 |
+| ARIMAX | 1116.45 | 1753.98 | 1017.40 | 893.95 |
+| LSTM | 1832.91 | 1819.39 | 1991.12 | 1209.96 |
+| GRU | 996.26 | 1347.61 | 1593.61 | 1010.62 |
+| CNN-LSTM | 938.71 | 1045.22 | 1013.39 | 595.21 |
+| Transformer | 1820.73 | 2552.45 | 1912.90 | 1946.03 |
+| Transformer+PE | 736.27 | 1177.75 | 899.58 | 772.09 |
+
+TABLE: champagne, horizon t+12 - MAE per fold (mean over seeds)
+| model | fold 1 | fold 2 | fold 3 | fold 4 |
+|---|---|---|---|---|
+| SeasonalNaive | 504.83 | 933.42 | 821.25 | 306.33 |
+| SARIMA | 349.08 | 1205.29 | 791.13 | 338.22 |
+| ARIMAX | 1016.67 | 1592.16 | 1094.92 | 888.37 |
+| LSTM | 957.26 | 2527.56 | 1289.79 | 678.07 |
+| GRU | 471.76 | 857.38 | 1267.28 | 876.87 |
+| CNN-LSTM | 393.47 | 882.21 | 932.72 | 662.91 |
+| Transformer | 1862.45 | 2357.78 | 2138.13 | 1953.61 |
+| Transformer+PE | 1207.22 | 1912.15 | 1308.04 | 685.52 |
+
+DIEBOLD-MARIANO-TYPE TESTS (champagne): lowest-mean-MAE model vs each other model.
+Forecasts of deep models = mean over seeds (seed-ensemble). Errors pooled over folds. stat<0 means the best model has lower loss. No multiplicity correction.
+
+t+1: best by mean MAE = SARIMA
+| vs | stat (abs err) | p (abs err) | stat (sq err) | p (sq err) |
+|---|---|---|---|---|
+| SeasonalNaive | -0.11 | 0.913 | 0.10 | 0.919 |
+| ARIMAX | -4.53 | 0.000 | -3.16 | 0.003 |
+| LSTM | -3.11 | 0.003 | -1.82 | 0.076 |
+| GRU | -2.20 | 0.033 | -1.51 | 0.138 |
+| CNN-LSTM | -2.28 | 0.027 | -1.64 | 0.107 |
+| Transformer | -4.24 | 0.000 | -3.35 | 0.002 |
+| Transformer+PE | -2.27 | 0.028 | -1.92 | 0.061 |
+
+t+3: best by mean MAE = SeasonalNaive
+| vs | stat (abs err) | p (abs err) | stat (sq err) | p (sq err) |
+|---|---|---|---|---|
+| SARIMA | -1.34 | 0.185 | -0.91 | 0.369 |
+| ARIMAX | -4.08 | 0.000 | -2.99 | 0.004 |
+| LSTM | -3.94 | 0.000 | -2.82 | 0.007 |
+| GRU | -3.21 | 0.002 | -2.13 | 0.038 |
+| CNN-LSTM | -1.23 | 0.226 | -0.96 | 0.343 |
+| Transformer | -3.99 | 0.000 | -3.26 | 0.002 |
+| Transformer+PE | -3.47 | 0.001 | -2.75 | 0.008 |
+
+t+6: best by mean MAE = SeasonalNaive
+| vs | stat (abs err) | p (abs err) | stat (sq err) | p (sq err) |
+|---|---|---|---|---|
+| SARIMA | -1.39 | 0.172 | -1.04 | 0.303 |
+| ARIMAX | -3.57 | 0.001 | -3.53 | 0.001 |
+| LSTM | -5.03 | 0.000 | -3.20 | 0.002 |
+| GRU | -5.17 | 0.000 | -3.67 | 0.001 |
+| CNN-LSTM | -1.14 | 0.261 | -1.11 | 0.272 |
+| Transformer | -3.97 | 0.000 | -3.37 | 0.002 |
+| Transformer+PE | -2.84 | 0.007 | -2.30 | 0.026 |
+
+t+12: best by mean MAE = SeasonalNaive
+| vs | stat (abs err) | p (abs err) | stat (sq err) | p (sq err) |
+|---|---|---|---|---|
+| SARIMA | -0.41 | 0.687 | -0.44 | 0.660 |
+| ARIMAX | -6.49 | 0.000 | -5.33 | 0.000 |
+| LSTM | -3.03 | 0.004 | -1.65 | 0.106 |
+| GRU | -1.74 | 0.088 | -1.29 | 0.203 |
+| CNN-LSTM | -0.50 | 0.617 | -0.31 | 0.757 |
+| Transformer | -11.85 | 0.000 | -7.56 | 0.000 |
+| Transformer+PE | -3.95 | 0.000 | -2.45 | 0.018 |
+
+================================================================================
+DATASET: bike  (hours), 5 walk-forward folds, test block 168 each
+================================================================================
+fold 1: training records 0..9557 (9,558), test records 9558..9725 (2012-02-08 05:00:00 .. 2012-02-15 04:00:00)
+fold 2: training records 0..11471 (11,472), test records 11472..11639 (2012-04-28 05:00:00 .. 2012-05-05 04:00:00)
+fold 3: training records 0..13384 (13,385), test records 13385..13552 (2012-07-16 22:00:00 .. 2012-07-23 21:00:00)
+fold 4: training records 0..15297 (15,298), test records 15298..15465 (2012-10-04 15:00:00 .. 2012-10-11 14:00:00)
+fold 5: training records 0..17210 (17,211), test records 17211..17378 (2012-12-24 23:00:00 .. 2012-12-31 23:00:00)
+pooled test targets per model/horizon: 840
+
+TRAINING WINDOWS PER FOLD AND EARLY STOPPING (deep models)
+| model | windows/fold (h=1) | windows/fold (h=48) | mean epochs | runs at max epochs |
+|---|---|---|---|---|
+| LSTM | [9534, 11448, 13361, 15274, 17187] | [9487, 11401, 13314, 15227, 17140] | 38.8 | 3/60 |
+| GRU | [9534, 11448, 13361, 15274, 17187] | [9487, 11401, 13314, 15227, 17140] | 38.5 | 5/60 |
+| CNN-LSTM | [9510, 11424, 13337, 15250, 17163] | [9463, 11377, 13290, 15203, 17116] | 29.3 | 0/60 |
+| Transformer | [9510, 11424, 13337, 15250, 17163] | [9463, 11377, 13290, 15203, 17116] | 41.0 | 25/60 |
+| Transformer+PE | [9510, 11424, 13337, 15250, 17163] | [9463, 11377, 13290, 15203, 17116] | 44.4 | 14/60 |
+SARIMA: optimiser converged in folds [True, True, True, True, True]; training-block length 720
+ARIMAX: optimiser converged in folds [True, True, True, True, True]; training-block length 720
+
+TABLE: bike, horizon t+1 - pooled over all folds (mean ± sd over seeds; no ± = deterministic)
+| model | MAE | RMSE | MAPE % | sMAPE % | sd of per-fold MAE |
+|---|---|---|---|---|---|
+| SeasonalNaive | 74.90 | 127.47 | 126.00 | 50.57 | 16.59 |
+| SARIMA | 48.28 | 75.20 | 66.05 | 49.96 | 16.49 |
+| ARIMAX | 63.91 | 95.33 | 180.62 | 53.38 | 25.88 |
+| LSTM | 33.91 ± 2.52 | 53.16 ± 5.60 | 57.81 ± 6.78 | 36.60 ± 2.42 | 10.98 |
+| GRU | 31.75 ± 1.87 | 47.51 ± 4.01 | 58.42 ± 8.84 | 36.34 ± 2.75 | 6.95 |
+| CNN-LSTM | 50.59 ± 1.00 | 70.67 ± 0.38 | 130.65 ± 2.53 | 50.50 ± 0.56 | 10.41 |
+| Transformer | 123.98 ± 2.91 | 171.02 ± 1.10 | 530.68 ± 40.32 | 78.01 ± 2.00 | 52.58 |
+| Transformer+PE | 37.71 ± 1.51 | 54.89 ± 3.06 | 89.91 ± 12.92 | 41.18 ± 1.46 | 10.30 |
+
+TABLE: bike, horizon t+6 - pooled over all folds (mean ± sd over seeds; no ± = deterministic)
+| model | MAE | RMSE | MAPE % | sMAPE % | sd of per-fold MAE |
+|---|---|---|---|---|---|
+| SeasonalNaive | 74.90 | 127.47 | 126.00 | 50.57 | 16.59 |
+| SARIMA | 123.82 | 175.31 | 303.29 | 87.40 | 43.56 |
+| ARIMAX | 131.01 | 172.54 | 626.73 | 80.88 | 50.47 |
+| LSTM | 53.72 ± 1.50 | 79.35 ± 3.16 | 102.29 ± 6.38 | 52.99 ± 1.51 | 14.07 |
+| GRU | 52.52 ± 1.00 | 76.87 ± 1.87 | 107.04 ± 5.53 | 48.89 ± 0.78 | 10.78 |
+| CNN-LSTM | 61.31 ± 2.22 | 86.06 ± 3.19 | 134.52 ± 9.37 | 59.64 ± 2.58 | 12.62 |
+| Transformer | 126.13 ± 3.99 | 175.08 ± 3.48 | 544.40 ± 42.86 | 79.57 ± 2.18 | 47.14 |
+| Transformer+PE | 64.16 ± 13.82 | 93.06 ± 21.29 | 174.54 ± 86.71 | 54.68 ± 4.73 | 21.16 |
+
+TABLE: bike, horizon t+24 - pooled over all folds (mean ± sd over seeds; no ± = deterministic)
+| model | MAE | RMSE | MAPE % | sMAPE % | sd of per-fold MAE |
+|---|---|---|---|---|---|
+| SeasonalNaive | 74.90 | 127.47 | 126.00 | 50.57 | 16.59 |
+| SARIMA | 90.45 | 145.17 | 99.09 | 70.46 | 21.36 |
+| ARIMAX | 131.74 | 173.71 | 633.75 | 80.20 | 52.21 |
+| LSTM | 67.10 ± 0.81 | 102.48 ± 0.50 | 100.26 ± 3.87 | 56.53 ± 1.92 | 20.14 |
+| GRU | 70.27 ± 2.17 | 106.24 ± 3.21 | 127.54 ± 21.05 | 55.94 ± 1.44 | 19.96 |
+| CNN-LSTM | 78.79 ± 2.53 | 112.07 ± 5.18 | 198.19 ± 18.59 | 64.10 ± 0.41 | 17.88 |
+| Transformer | 129.43 ± 2.60 | 176.17 ± 3.42 | 553.05 ± 24.29 | 80.37 ± 1.32 | 52.83 |
+| Transformer+PE | 77.04 ± 14.00 | 110.49 ± 20.08 | 244.50 ± 139.65 | 59.72 ± 6.27 | 23.59 |
+
+TABLE: bike, horizon t+48 - pooled over all folds (mean ± sd over seeds; no ± = deterministic)
+| model | MAE | RMSE | MAPE % | sMAPE % | sd of per-fold MAE |
+|---|---|---|---|---|---|
+| SeasonalNaive | 74.90 | 127.47 | 126.00 | 50.57 | 16.59 |
+| SARIMA | 137.84 | 215.08 | 155.54 | 92.02 | 34.04 |
+| ARIMAX | 134.47 | 176.95 | 662.22 | 80.68 | 53.25 |
+| LSTM | 78.17 ± 0.99 | 114.72 ± 1.08 | 133.51 ± 9.06 | 59.19 ± 1.95 | 20.96 |
+| GRU | 80.27 ± 0.83 | 117.22 ± 1.28 | 129.81 ± 5.78 | 63.10 ± 3.08 | 23.50 |
+| CNN-LSTM | 77.01 ± 1.94 | 113.42 ± 2.28 | 157.85 ± 17.64 | 62.42 ± 3.25 | 22.46 |
+| Transformer | 128.50 ± 1.86 | 174.29 ± 3.88 | 553.03 ± 29.68 | 79.78 ± 0.33 | 52.37 |
+| Transformer+PE | 79.45 ± 10.23 | 116.14 ± 14.56 | 198.47 ± 51.76 | 60.28 ± 3.88 | 27.94 |
+
+TABLE: bike, MAE by horizon (pooled; mean ± sd over seeds)
+| model | t+1 | t+6 | t+24 | t+48 |
+|---|---|---|---|---|
+| SeasonalNaive | 74.90 | 74.90 | 74.90 | 74.90 |
+| SARIMA | 48.28 | 123.82 | 90.45 | 137.84 |
+| ARIMAX | 63.91 | 131.01 | 131.74 | 134.47 |
+| LSTM | 33.91 ± 2.52 | 53.72 ± 1.50 | 67.10 ± 0.81 | 78.17 ± 0.99 |
+| GRU | 31.75 ± 1.87 | 52.52 ± 1.00 | 70.27 ± 2.17 | 80.27 ± 0.83 |
+| CNN-LSTM | 50.59 ± 1.00 | 61.31 ± 2.22 | 78.79 ± 2.53 | 77.01 ± 1.94 |
+| Transformer | 123.98 ± 2.91 | 126.13 ± 3.99 | 129.43 ± 2.60 | 128.50 ± 1.86 |
+| Transformer+PE | 37.71 ± 1.51 | 64.16 ± 13.82 | 77.04 ± 14.00 | 79.45 ± 10.23 |
+
+TABLE: bike, horizon t+1 - MAE per fold (mean over seeds)
+| model | fold 1 | fold 2 | fold 3 | fold 4 | fold 5 |
+|---|---|---|---|---|---|
+| SeasonalNaive | 56.99 | 85.04 | 63.82 | 70.60 | 98.05 |
+| SARIMA | 37.26 | 55.56 | 65.75 | 57.44 | 25.39 |
+| ARIMAX | 48.34 | 82.16 | 81.32 | 82.13 | 25.59 |
+| LSTM | 23.57 | 45.47 | 40.01 | 39.69 | 20.82 |
+| GRU | 30.60 | 32.74 | 39.43 | 35.20 | 20.80 |
+| CNN-LSTM | 36.40 | 61.22 | 56.69 | 55.60 | 43.05 |
+| Transformer | 92.34 | 149.57 | 160.37 | 170.51 | 47.09 |
+| Transformer+PE | 30.25 | 45.78 | 44.32 | 44.90 | 23.29 |
+
+TABLE: bike, horizon t+6 - MAE per fold (mean over seeds)
+| model | fold 1 | fold 2 | fold 3 | fold 4 | fold 5 |
+|---|---|---|---|---|---|
+| SeasonalNaive | 56.99 | 85.04 | 63.82 | 70.60 | 98.05 |
+| SARIMA | 93.99 | 143.38 | 160.24 | 158.97 | 62.54 |
+| ARIMAX | 89.54 | 185.12 | 157.36 | 156.71 | 66.32 |
+| LSTM | 40.34 | 72.94 | 51.87 | 62.50 | 40.96 |
+| GRU | 41.20 | 64.14 | 55.28 | 60.70 | 41.25 |
+| CNN-LSTM | 49.11 | 70.11 | 66.34 | 74.36 | 46.64 |
+| Transformer | 94.55 | 162.77 | 169.19 | 144.11 | 60.02 |
+| Transformer+PE | 48.40 | 97.01 | 66.32 | 66.25 | 42.83 |
+
+TABLE: bike, horizon t+24 - MAE per fold (mean over seeds)
+| model | fold 1 | fold 2 | fold 3 | fold 4 | fold 5 |
+|---|---|---|---|---|---|
+| SeasonalNaive | 56.99 | 85.04 | 63.82 | 70.60 | 98.05 |
+| SARIMA | 88.53 | 103.59 | 100.20 | 105.78 | 54.13 |
+| ARIMAX | 89.44 | 189.36 | 158.11 | 156.89 | 64.90 |
+| LSTM | 57.31 | 69.67 | 72.88 | 95.07 | 40.58 |
+| GRU | 58.33 | 79.33 | 77.79 | 93.45 | 42.42 |
+| CNN-LSTM | 67.35 | 80.08 | 86.37 | 103.37 | 56.79 |
+| Transformer | 96.05 | 157.51 | 168.20 | 172.69 | 52.70 |
+| Transformer+PE | 72.11 | 101.94 | 79.91 | 91.22 | 40.00 |
+
+TABLE: bike, horizon t+48 - MAE per fold (mean over seeds)
+| model | fold 1 | fold 2 | fold 3 | fold 4 | fold 5 |
+|---|---|---|---|---|---|
+| SeasonalNaive | 56.99 | 85.04 | 63.82 | 70.60 | 98.05 |
+| SARIMA | 164.45 | 159.32 | 134.85 | 150.21 | 80.37 |
+| ARIMAX | 89.53 | 198.05 | 158.25 | 156.94 | 69.58 |
+| LSTM | 62.00 | 88.50 | 84.23 | 104.07 | 52.05 |
+| GRU | 59.92 | 90.04 | 89.18 | 109.55 | 52.65 |
+| CNN-LSTM | 65.04 | 79.27 | 79.53 | 110.91 | 50.30 |
+| Transformer | 86.09 | 159.65 | 165.45 | 172.68 | 58.61 |
+| Transformer+PE | 55.02 | 104.94 | 85.14 | 106.27 | 45.91 |
+
+DIEBOLD-MARIANO-TYPE TESTS (bike): lowest-mean-MAE model vs each other model.
+Forecasts of deep models = mean over seeds (seed-ensemble). Errors pooled over folds. stat<0 means the best model has lower loss. No multiplicity correction.
+
+t+1: best by mean MAE = GRU
+| vs | stat (abs err) | p (abs err) | stat (sq err) | p (sq err) |
+|---|---|---|---|---|
+| SeasonalNaive | -6.10 | 0.000 | -4.60 | 0.000 |
+| SARIMA | -7.76 | 0.000 | -6.12 | 0.000 |
+| ARIMAX | -10.94 | 0.000 | -7.60 | 0.000 |
+| LSTM | -2.04 | 0.041 | -2.82 | 0.005 |
+| CNN-LSTM | -9.54 | 0.000 | -6.97 | 0.000 |
+| Transformer | -13.82 | 0.000 | -9.31 | 0.000 |
+| Transformer+PE | -3.30 | 0.001 | -2.96 | 0.003 |
+
+t+6: best by mean MAE = GRU
+| vs | stat (abs err) | p (abs err) | stat (sq err) | p (sq err) |
+|---|---|---|---|---|
+| SeasonalNaive | -3.66 | 0.000 | -3.82 | 0.000 |
+| SARIMA | -9.30 | 0.000 | -6.41 | 0.000 |
+| ARIMAX | -12.41 | 0.000 | -9.41 | 0.000 |
+| LSTM | -0.94 | 0.348 | -1.37 | 0.170 |
+| CNN-LSTM | -3.45 | 0.001 | -2.07 | 0.039 |
+| Transformer | -11.28 | 0.000 | -8.27 | 0.000 |
+| Transformer+PE | -4.02 | 0.000 | -3.23 | 0.001 |
+
+t+24: best by mean MAE = LSTM
+| vs | stat (abs err) | p (abs err) | stat (sq err) | p (sq err) |
+|---|---|---|---|---|
+| SeasonalNaive | -1.09 | 0.274 | -1.74 | 0.082 |
+| SARIMA | -4.65 | 0.000 | -4.11 | 0.000 |
+| ARIMAX | -7.43 | 0.000 | -5.88 | 0.000 |
+| GRU | -1.61 | 0.107 | -1.47 | 0.142 |
+| CNN-LSTM | -4.37 | 0.000 | -1.99 | 0.047 |
+| Transformer | -7.94 | 0.000 | -5.99 | 0.000 |
+| Transformer+PE | -3.05 | 0.002 | -0.81 | 0.418 |
+
+t+48: best by mean MAE = SeasonalNaive
+| vs | stat (abs err) | p (abs err) | stat (sq err) | p (sq err) |
+|---|---|---|---|---|
+| SARIMA | -3.91 | 0.000 | -3.54 | 0.000 |
+| ARIMAX | -3.42 | 0.001 | -2.18 | 0.029 |
+| LSTM | -0.13 | 0.900 | 0.78 | 0.436 |
+| GRU | -0.31 | 0.756 | 0.64 | 0.520 |
+| CNN-LSTM | 0.16 | 0.873 | 0.95 | 0.340 |
+| Transformer | -3.15 | 0.002 | -2.06 | 0.040 |
+| Transformer+PE | -0.03 | 0.975 | 1.07 | 0.285 |
