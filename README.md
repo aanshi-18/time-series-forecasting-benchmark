@@ -1,5 +1,5 @@
-# time-series-forecasting-benchmark
-Time-Series Forecasting Benchmark
+
+#Time-Series Forecasting Benchmark
 This project compares statistical models and neural networks on two forecasting problems: monthly champagne sales and hourly bike-sharing demand. The aim is to see how their performance changes across datasets and forecast horizons, rather than assume that a more complex model will always work better.
 [Read the whitepaper](paper/whitepaper.pdf) 
 What is compared?
